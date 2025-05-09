@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap CSS -->
+    <link 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+        rel="stylesheet">
+    
+    <style>
+        body {
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-text {
+            flex: 1;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4">Task Manager</h2>
+
+        <div class="input-group mb-3">
+            <input type="text" id="taskInput" class="form-control" placeholder="Enter a new task">
+            <button class="btn btn-primary" id="addTaskBtn">Add Task</button>
+        </div>
+
+        <ul class="list-group" id="taskList"></ul>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script 
+        src="https://code.jquery.com/jquery-3.6.0.min.js">
+    </script>
+    <script 
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let tasks = [];
+
+        // Load tasks from localStorage
+        function loadTasks() {
+            const stored = localStorage.getItem('tasks');
+            tasks = stored ? JSON.parse(stored) : [];
+            renderTasks();
+        }
+
+        // Save tasks to localStorage
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // Render the task list
+        function renderTasks() {
+            $('#taskList').empty();
+            tasks.forEach((task, index) => {
+                $('#taskList').append(`
+                    <li class="list-group-item task-item">
+                        <span class="task-text" contenteditable="false">${task}</span>
+                        <div>
+                            <button class="btn btn-sm btn-warning editBtn">Edit</button>
+                            <button class="btn btn-sm btn-danger deleteBtn">Delete</button>
+                        </div>
+                    </li>
+                `);
+            });
+        }
+
+        // Add Task
+        $('#addTaskBtn').click(function() {
+            const newTask = $('#taskInput').val().trim();
+            if (newTask) {
+                tasks.push(newTask);
+                saveTasks();
+                renderTasks();
+                $('#taskInput').val('');
+            }
+        });
+
+        // Edit/Delete Events (delegated)
+        $('#taskList').on('click', '.editBtn', function() {
+            const $li = $(this).closest('li');
+            const $text = $li.find('.task-text');
+
+            if ($(this).text() === 'Edit') {
+                $text.attr('contenteditable', 'true').focus();
+                $(this).text('Save').removeClass('btn-warning').addClass('btn-success');
+            } else {
+                const newText = $text.text().trim();
+                const index = $li.index();
+                tasks[index] = newText;
+                saveTasks();
+                renderTasks();
+            }
+        });
+
+        $('#taskList').on('click', '.deleteBtn', function() {
+            const index = $(this).closest('li').index();
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        });
+
+        // Load on start
+        $(document).ready(loadTasks);
+    </script>
+</body>
+</html>
